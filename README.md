@@ -14,11 +14,14 @@ This library is provided as Python scripts. Add the following files to your proj
 
 ## Usage
 
-### Base Methods and the @cpybase Decorator
+### Inheriting from CPy and Declaring Base Methods Using the @cpybase Decorator
 
-In CPy, **base methods** are the original implementations that can be overridden or extended by layer-specific methods. To allow a method’s behavior to be modified by layers, you need to decorate it with the @cpybase decorator. This signals that the method is eligible for layering and integrates it into the CPy layering system.
+To utilize the layering system provided by CPy, your class must inherit from the CPy base class. Additionally, any methods that you wish to modify through layers need to be declared as base methods by using the @cpybase decorator.
 
-Use the @cpybase decorator to mark methods that can have their behavior altered by layers:
+This involves two key steps:
+
+1.	Inherit from CPy: Ensure your class inherits from the CPy class to access the layering functionalities.
+2.	Declare Base Methods with @cpybase: Decorate methods that can be overridden or extended by layers with the @cpybase decorator.
 
 ```python
 from cpy import CPy, cpylayer, cpybase
