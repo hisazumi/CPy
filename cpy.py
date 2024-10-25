@@ -78,7 +78,7 @@ def cpylayer(cls, layer, name):
 # CPy: extends multiple classes with Context-Oriented Programming (COP)
 # The scope of layer activation and deactivation is not limited to a single class
 class CPy(CPySingle):
-    instances = []
+    instances: list["CPy"] = []
 
     def __init__(self):
         super(CPy, self).__init__()
