@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 import unittest
-import rospy
-from crospy import CPySingle, cpylayer, cpybase
+from cpy import CPy, cpylayer, cpybase
 
 PKG = 'testcpy'
 
 
-class CPy1(CPySingle):
+class CPy1(CPy):
 
     def __init__(self):
         self.reset()
@@ -38,7 +37,7 @@ def test_l2(self):
     self.proceed()
 
 
-class CPy2(CPySingle):
+class CPy2(CPy):
 
     def __init__(self):
         self.reset()
@@ -127,6 +126,4 @@ class CPyTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import rosunit
-    rospy.init_node('test', anonymous=True)
-    rosunit.unitrun(PKG, 'test_CPy', CPyTest)
+    unittest.main()
