@@ -71,8 +71,11 @@ obj.test()
 print(obj.base_called)  # False
 print(obj.l1_called)    # True
 
+obj = CPy1()
+obj.activate('l1')
 obj.activate('l2')
 obj.test()
 print(obj.base_called)  # False
+print(obj.l1_called)    # True
 print(obj.l2_called)    # True
 ```
