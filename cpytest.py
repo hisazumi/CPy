@@ -1,128 +1,68 @@
 #!/usr/bin/env python
-
 import unittest
-from cpy import CPy, cpylayer, cpybase
+from cpy import CPy, cpylayer, cpybase, Critical
 
-PKG = 'testcpy'
-
-
-class CPy1(CPy):
+class CPyQ1(CPy):
 
     def __init__(self):
-        self.reset()
-        super(CPy1, self).__init__()
-
-    def reset(self):
-        self.base_called = False
-        self.l1_called = False
-        self.l2_called = False
+        super(CPyQ1, self).__init__()
+        self.base_callee_called = False
+        self.l1_callee_called = False
+        self.l2_callee_called = False
 
     @cpybase
-    def test(self):
-        self.base_called = True
-
-    @cpybase
-    def skiptest(self):
-        self.base_called = True
+    def callee(self):
+        self.base_callee_called = True
 
 
-@cpylayer(CPy1, 'l1', 'test')
-def test_l1(self):
-    self.l1_called = True
+@cpylayer(CPyQ1, 'l1', 'callee')
+def callee_l1(self):
+    self.l1_callee_called = True
 
 
-@cpylayer(CPy1, 'l2', 'test')
-def test_l2(self):
-    self.l2_called = True
-    self.proceed()
+@cpylayer(CPyQ1, 'l2', 'callee')
+def callee_l2(self):
+    self.l2_callee_called = True
 
 
-class CPy2(CPy):
+class CPyQTest(unittest.TestCase):
 
-    def __init__(self):
-        self.reset()
-        super(CPy2, self).__init__()
-
-    @cpybase
-    def test(self):
-        pass
-
-
-@cpylayer(CPy2, 'l1', 'test')
-def test_c2l2(self):
-    pass
+    def test_basic(self):
+        obj1 = CPyQ1()
+        obj2 = CPyQ1()
+        obj1.activate('l1')
+        obj1.callee()
+        self.assertEqual(True, obj1.l1_callee_called)
+        self.assertEqual(False, obj1.l2_callee_called)
 
 
-class CPyTest(unittest.TestCase):
+    def test_Critical(self):
+        obj = CPyQ1()
 
-    def test_check_layers(self):
-        self.assertEqual(set(['l1', 'l2']), set(CPy1.layers.keys()))
+        with Critical(obj):
+            obj.activate('l1')
+            obj.callee()  # still base
+            self.assertEqual(False, obj.l1_callee_called)
+            self.assertEqual(True, obj.base_callee_called)
 
-    def test_check_layers2(self):
-        # confirm CPy1 and CPy2 are not contaminated each other
-        self.assertEqual(set(['l1']), set(CPy2.layers.keys()))
+            obj.activate('l2')
+            obj.callee()  # still base
+            self.assertEqual(False, obj.l1_callee_called)
+            self.assertEqual(True, obj.base_callee_called)
 
-    def test_base_called(self):
-        obj = CPy1()
-        obj.test()
-        self.assertEqual(True, obj.base_called)
+            obj.deactivate('l2')
+            obj.callee()  # of course still base
+            self.assertEqual(False, obj.l1_callee_called)
+            self.assertEqual(True, obj.base_callee_called)
 
-    def test_activate_l1(self):
-        obj = CPy1()
-        obj.activate('l1')
-        obj.test()
-        self.assertEqual(False, obj.base_called)
-        self.assertEqual(True, obj.l1_called)
+            # check queue contents
+            self.assertEqual([('act', 'l1'), ('act', 'l2'),
+                              ('dea', 'l2')], obj.queued_request)
 
-    def test_actdeact_l1(self):
-        obj = CPy1()
-        obj.activate('l1')
-        obj.test()
-
-        obj.reset()
-
-        obj.deactivate('l1')
-        obj.test()
-        self.assertEqual(True, obj.base_called)
-        self.assertEqual(False, obj.l1_called)
-
-    def test_activate_l1_l2(self):
-        obj = CPy1()
-        obj.activate('l1')
-        obj.activate('l2')
-        obj.test()
-        self.assertEqual(False, obj.base_called)
-        self.assertEqual(True, obj.l1_called)  # proceed
-        self.assertEqual(True, obj.l2_called)
-
-    def test_actl1l2_deactl1(self):
-        obj = CPy1()
-        obj.activate('l1')
-        obj.activate('l2')
-        obj.test()
-
-        obj.reset()
-
-        obj.deactivate('l1')
-        obj.test()
-        self.assertEqual(True, obj.base_called)  # proceed
-        self.assertEqual(False, obj.l1_called)
-        self.assertEqual(True, obj.l2_called)
-
-    def test_basemethod_called_without_layers(self):
-        obj = CPy1()
-        obj.skiptest()
-        self.assertEqual(True, obj.base_called)
-        self.assertEqual(False, obj.l1_called)
-        self.assertEqual(False, obj.l2_called)
-
-    def test_activate_l2_and_base_called(self):
-        obj = CPy1()
-        obj.activate('l2')
-        obj.skiptest()
-        self.assertEqual(True, obj.base_called)
-        self.assertEqual(False, obj.l1_called)
-        self.assertEqual(False, obj.l2_called)
+        self.assertEqual(['base', 'l1'], obj._layer)
+        obj.callee()  # activated l1, deactivated l2
+        self.assertEqual(True, obj.l1_callee_called)
+        self.assertEqual(False, obj.l2_callee_called)
 
 
 if __name__ == '__main__':
