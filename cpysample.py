@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Add the parent directory to sys.path to be able to import the 'cpy' package
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from cpy import CPy, cpybase
 from enum import Enum
 

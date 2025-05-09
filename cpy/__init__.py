@@ -114,7 +114,7 @@ def cpylayer(layer, base_method_name):
         return LayerMethodRegistrar(func, layer, base_method_name)
     return decorator
 
-# CPy: extends multiple classes with Context-Oriented Programming (COP)
+# CPy: extends multiple classes with Context-Orientated Programming (COP)
 # The scope of layer activation and deactivation is not limited to a single class
 class CPy(CPySingle):
     instances: list["CPy"] = []
