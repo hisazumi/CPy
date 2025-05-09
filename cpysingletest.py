@@ -2,9 +2,13 @@
 
 import unittest
 from cpy import CPySingle, cpylayer, cpybase
+from enum import Enum
 
 PKG = 'testcpy'
 
+class LayerEnum(Enum):
+    L1 = 'l1'
+    L2 = 'l2'
 
 class CPy1(CPySingle):
 
@@ -25,12 +29,12 @@ class CPy1(CPySingle):
     def skiptest(self):
         self.base_called = True
 
-    @test.layer('l1')
+    @test.layer(LayerEnum.L1)
     def test_l1(self):
         self.l1_called = True
 
 
-    @test.layer('l2')
+    @test.layer(LayerEnum.L2)
     def test_l2(self):
         self.l2_called = True
         self.proceed()
@@ -46,7 +50,7 @@ class CPy2(CPySingle):
     def test(self):
         pass
 
-    @test.layer('l1')
+    @test.layer(LayerEnum.L1)
     def test_c2l2(self):
         pass
 
@@ -54,11 +58,11 @@ class CPy2(CPySingle):
 class CPyTest(unittest.TestCase):
 
     def test_check_layers(self):
-        self.assertEqual(set(['l1', 'l2']), set(CPy1.layers.keys()))
+        self.assertEqual(set([LayerEnum.L1.value, LayerEnum.L2.value]), set(CPy1.layers.keys()))
 
     def test_check_layers2(self):
         # confirm CPy1 and CPy2 are not contaminated each other
-        self.assertEqual(set(['l1']), set(CPy2.layers.keys()))
+        self.assertEqual(set([LayerEnum.L1.value]), set(CPy2.layers.keys()))
 
     def test_base_called(self):
         obj = CPy1()
@@ -67,27 +71,27 @@ class CPyTest(unittest.TestCase):
 
     def test_activate_l1(self):
         obj = CPy1()
-        obj.activate('l1')
+        obj.activate(LayerEnum.L1)
         obj.test()
         self.assertEqual(False, obj.base_called)
         self.assertEqual(True, obj.l1_called)
 
     def test_actdeact_l1(self):
         obj = CPy1()
-        obj.activate('l1')
+        obj.activate(LayerEnum.L1)
         obj.test()
 
         obj.reset()
 
-        obj.deactivate('l1')
+        obj.deactivate(LayerEnum.L1)
         obj.test()
         self.assertEqual(True, obj.base_called)
         self.assertEqual(False, obj.l1_called)
 
     def test_activate_l1_l2(self):
         obj = CPy1()
-        obj.activate('l1')
-        obj.activate('l2')
+        obj.activate(LayerEnum.L1)
+        obj.activate(LayerEnum.L2)
         obj.test()
         self.assertEqual(False, obj.base_called)
         self.assertEqual(True, obj.l1_called)  # proceed
@@ -95,13 +99,13 @@ class CPyTest(unittest.TestCase):
 
     def test_actl1l2_deactl1(self):
         obj = CPy1()
-        obj.activate('l1')
-        obj.activate('l2')
+        obj.activate(LayerEnum.L1)
+        obj.activate(LayerEnum.L2)
         obj.test()
 
         obj.reset()
 
-        obj.deactivate('l1')
+        obj.deactivate(LayerEnum.L1)
         obj.test()
         self.assertEqual(True, obj.base_called)  # proceed
         self.assertEqual(False, obj.l1_called)
@@ -116,7 +120,7 @@ class CPyTest(unittest.TestCase):
 
     def test_activate_l2_and_base_called(self):
         obj = CPy1()
-        obj.activate('l2')
+        obj.activate(LayerEnum.L2)
         obj.skiptest()
         self.assertEqual(True, obj.base_called)
         self.assertEqual(False, obj.l1_called)

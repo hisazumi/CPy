@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # CPySingle: extends a single class with Context-Oriented Programming (COP)
 # The scope of layer activation and deactivation is limited to a single class
+
+from enum import Enum
+
 class CPySingle(object):
     @classmethod
     def init_layer(cls):
@@ -10,14 +13,16 @@ class CPySingle(object):
     @classmethod
     def add_layer(cls, layer):
         cls.init_layer()
-        cls.layers[layer] = {}
+        layer_name = layer.value if isinstance(layer, Enum) else layer
+        cls.layers[layer_name] = {}
 
     @classmethod
     def add_method(cls, layer, name, method):
         cls.init_layer()
-        if layer not in cls.layers:
-            cls.add_layer(layer)
-        cls.layers[layer][name] = method
+        layer_name = layer.value if isinstance(layer, Enum) else layer
+        if layer_name not in cls.layers:
+            cls.add_layer(layer_name)
+        cls.layers[layer_name][name] = method
 
     def __init__(self):
         super(CPySingle, self).__init__()
@@ -33,11 +38,13 @@ class CPySingle(object):
 
     def activate(self, layer):
         self.purge_cache()
-        self._layer.append(layer)
+        layer_name = layer.value if isinstance(layer, Enum) else layer
+        self._layer.append(layer_name)
 
     def deactivate(self, layer):
         self.purge_cache()
-        self._layer.remove(layer)
+        layer_name = layer.value if isinstance(layer, Enum) else layer
+        self._layer.remove(layer_name)
 
     def proceed(self, *args, **kwargs):
         current = self._proceed_funcs.pop()
@@ -47,9 +54,9 @@ class CPySingle(object):
 
 # LayerMethodRegistrar: Helper class for accessing and registering class and method from the decorator
 class LayerMethodRegistrar:
-    def __init__(self, func_to_decorate, layer_name, base_method_name):
+    def __init__(self, func_to_decorate, layer, base_method_name):
         self.func_to_decorate = func_to_decorate
-        self.layer_name = layer_name
+        self.layer_name = layer.value if isinstance(layer, Enum) else layer
         self.base_method_name = base_method_name
 
     def __set_name__(self, owner_cls, name_in_class):
@@ -93,11 +100,11 @@ def cpybase(original_base_func):
         return self_instance.proceed(*args, **kwargs)
 
     # 2. runtime_behavior_of_base_method 関数オブジェクトに .layer() メソッドを追加
-    def layer_decorator_factory(layer_name_for_attr):
+    def layer_decorator_factory(layer):
         def decorator(layer_function_to_register):
             # LayerMethodRegistrar を使用してレイヤーメソッドを登録
             # ベースメソッド名は original_base_func.__name__ から取得
-            return LayerMethodRegistrar(layer_function_to_register, layer_name_for_attr, original_base_func.__name__)
+            return LayerMethodRegistrar(layer_function_to_register, layer, original_base_func.__name__)
         return decorator
 
     runtime_behavior_of_base_method.layer = layer_decorator_factory
@@ -106,9 +113,9 @@ def cpybase(original_base_func):
     return runtime_behavior_of_base_method
 
 # cpylayer: decorator for layer method
-def cpylayer(layer_name, base_method_name):
+def cpylayer(layer, base_method_name):
     def decorator(func):
-        return LayerMethodRegistrar(func, layer_name, base_method_name)
+        return LayerMethodRegistrar(func, layer, base_method_name)
     return decorator
 
 # CPy: extends multiple classes with Context-Oriented Programming (COP)
@@ -175,10 +182,10 @@ class Critical(object):
 class Layer(object):
 
     def __init__(self, layer):
-        self.layer = layer
+        self.layer_name = layer.value if isinstance(layer, Enum) else layer
 
     def __enter__(self):
-        CPy.activate(self.layer)
+        CPy.activate(self.layer_name)
 
     def __exit__(self, type, value, traceback):
-        CPy.deactivate(self.layer)
+        CPy.deactivate(self.layer_name)

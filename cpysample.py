@@ -1,4 +1,9 @@
 from cpy import CPy, cpylayer, cpybase
+from enum import Enum
+
+class Layer(Enum):
+    L1 = 'l1'
+    L2 = 'l2'
 
 class CPy1(CPy):
     def __init__(self):
@@ -18,24 +23,24 @@ class CPy1(CPy):
     def skiptest(self):
         self.base_called = True
 
-    @test.layer('l1') # @cpylayer(layer name, method name)
+    @test.layer(Layer.L1) # @cpylayer(layer name, method name)
     def test_l1(self):
         self.l1_called = True
 
-    @test.layer('l2')
+    @test.layer(Layer.L2)
     def test_l2(self):
         self.l2_called = True
         self.proceed()
 
 obj = CPy1()
-obj.activate('l1')
+obj.activate(Layer.L1)
 obj.test()
 print(obj.base_called)  # False
 print(obj.l1_called)    # True
 
 obj = CPy1()
-obj.activate('l1')
-obj.activate('l2')
+obj.activate(Layer.L1)
+obj.activate(Layer.L2)
 obj.test()
 print(obj.base_called)  # False
 print(obj.l1_called)    # True
