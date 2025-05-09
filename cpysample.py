@@ -23,7 +23,7 @@ class CPy1(CPy):
     def skiptest(self):
         self.base_called = True
 
-    @test.layer(Layer.L1) # @cpylayer(layer name, method name)
+    @test.layer(Layer.L1) # declare as a layer method for a base method
     def test_l1(self):
         self.l1_called = True
 

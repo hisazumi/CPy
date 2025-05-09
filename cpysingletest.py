@@ -61,7 +61,7 @@ class CPyTest(unittest.TestCase):
         self.assertEqual(set([LayerEnum.L1.value, LayerEnum.L2.value]), set(CPy1.layers.keys()))
 
     def test_check_layers2(self):
-        # confirm CPy1 and CPy2 are not contaminated each other
+        # Confirm CPy1 and CPy2 are not contaminated by each other
         self.assertEqual(set([LayerEnum.L1.value]), set(CPy2.layers.keys()))
 
     def test_base_called(self):

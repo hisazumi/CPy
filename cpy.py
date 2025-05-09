@@ -74,13 +74,11 @@ class LayerMethodRegistrar:
         return self.func_to_decorate.__get__(instance, owner_cls)
 
 def cpybase(original_base_func):
-    # 1. 元の cpybase のコアロジックを定義 (メソッド呼び出しのインターセプトとproceed処理)
-    #    これは前回の回答で示した cpybase の実装です。
     def activated_funcs_for_base(self_instance, base_fname):
-        active_methods = [original_base_func] # ベースメソッド自体がリストの最初
+        active_methods = [original_base_func] # The base method itself is the first in the list
         if hasattr(self_instance.__class__, 'layers') and isinstance(self_instance.__class__.layers, dict):
             for layer_key_active in self_instance._layer:
-                if layer_key_active == 'base': continue # ベースは既に追加済み
+                if layer_key_active == 'base': continue # Base is already added
                 
                 class_layers = self_instance.__class__.layers
                 if layer_key_active in class_layers:
@@ -89,7 +87,7 @@ def cpybase(original_base_func):
                         active_methods.append(layer_specific_methods[base_fname])
         return active_methods
 
-    # これが実際にクラスのメソッドとして登録され、実行時に呼ばれる関数
+    # This is the function that is actually registered as a class method and called at runtime
     def runtime_behavior_of_base_method(self_instance, *args, **kwargs):
         fname = original_base_func.__name__
         if fname in self_instance.cache:
@@ -99,17 +97,15 @@ def cpybase(original_base_func):
             self_instance.cache[fname] = self_instance._proceed_funcs
         return self_instance.proceed(*args, **kwargs)
 
-    # 2. runtime_behavior_of_base_method 関数オブジェクトに .layer() メソッドを追加
     def layer_decorator_factory(layer):
         def decorator(layer_function_to_register):
-            # LayerMethodRegistrar を使用してレイヤーメソッドを登録
-            # ベースメソッド名は original_base_func.__name__ から取得
+            # Register the layer method using LayerMethodRegistrar
+            # Get the base method name from original_base_func.__name__
             return LayerMethodRegistrar(layer_function_to_register, layer, original_base_func.__name__)
         return decorator
 
     runtime_behavior_of_base_method.layer = layer_decorator_factory
 
-    # 3. デコレートされたベースメソッド（.layer 属性付き）を返す
     return runtime_behavior_of_base_method
 
 # cpylayer: decorator for layer method
