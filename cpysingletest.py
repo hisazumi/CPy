@@ -25,16 +25,15 @@ class CPy1(CPySingle):
     def skiptest(self):
         self.base_called = True
 
+    @test.layer('l1')
+    def test_l1(self):
+        self.l1_called = True
 
-@cpylayer(CPy1, 'l1', 'test')
-def test_l1(self):
-    self.l1_called = True
 
-
-@cpylayer(CPy1, 'l2', 'test')
-def test_l2(self):
-    self.l2_called = True
-    self.proceed()
+    @test.layer('l2')
+    def test_l2(self):
+        self.l2_called = True
+        self.proceed()
 
 
 class CPy2(CPySingle):
@@ -47,10 +46,9 @@ class CPy2(CPySingle):
     def test(self):
         pass
 
-
-@cpylayer(CPy2, 'l1', 'test')
-def test_c2l2(self):
-    pass
+    @test.layer('l1')
+    def test_c2l2(self):
+        pass
 
 
 class CPyTest(unittest.TestCase):
