@@ -12,6 +12,10 @@ class CPy1(CPy):
         self.enhanced = False
         self.logged = False
 
+    def reset_flags(self):
+        self.enhanced = False
+        self.logged = False
+
     @cpybase
     def greet(self):
         print(f"Hello from {self.name}")
@@ -33,6 +37,10 @@ class CPy2(CPy):
     def __init__(self, name):
         super().__init__()
         self.name = name
+        self.enhanced = False
+        self.logged = False
+
+    def reset_flags(self):
         self.enhanced = False
         self.logged = False
 
@@ -58,6 +66,8 @@ obj1 = CPy1("Instance 1")
 obj2 = CPy2("Instance 2")
 
 print("--- Before activation ---")
+obj1.reset_flags()
+obj2.reset_flags()
 obj1.greet()
 obj2.greet()
 print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
@@ -68,6 +78,8 @@ print("-" * 25)
 CPy.activate(Layer.ENHANCE)
 
 print("--- After activating ENHANCE layer ---")
+obj1.reset_flags()
+obj2.reset_flags()
 obj1.greet()
 obj2.greet()
 print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
@@ -78,6 +90,8 @@ print("-" * 25)
 CPy.activate(Layer.LOGGING)
 
 print("--- After activating ENHANCE and LOGGING layers ---")
+obj1.reset_flags()
+obj2.reset_flags()
 obj1.greet()
 obj2.greet()
 print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
@@ -88,6 +102,20 @@ print("-" * 25)
 CPy.deactivate(Layer.ENHANCE)
 
 print("--- After deactivating ENHANCE layer ---")
+obj1.reset_flags()
+obj2.reset_flags()
+obj1.greet()
+obj2.greet()
+print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
+print(f"Obj2 enhanced: {obj2.enhanced}, logged: {obj2.logged}")
+print("-" * 25)
+
+# Deactivate the LOGGING layer globally
+CPy.deactivate(Layer.LOGGING)
+
+print("--- After deactivating LOGGING layer ---")
+obj1.reset_flags()
+obj2.reset_flags()
 obj1.greet()
 obj2.greet()
 print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
