@@ -126,11 +126,11 @@ class CPyQTest(unittest.TestCase):
             self.assertEqual(True, obj.base_callee_called)
 
             # check queue contents
-            self.assertEqual([('act', TestLayer.L1.value), ('act', TestLayer.L2.value),
-                              ('dea', TestLayer.L2.value)], obj.queued_request)
+            self.assertEqual([('act', TestLayer.L1), ('act', TestLayer.L2),
+                              ('dea', TestLayer.L2)], obj.queued_request)
 
         # Criticalセクションを抜けた後、キューが処理される
-        self.assertEqual(['base', TestLayer.L1.value], obj._layer)
+        self.assertEqual([CPy.Layer.BASE, TestLayer.L1], obj._layer)
         
         # フラグをリセットしてからcalleeを呼び出し、レイヤーメソッドが実行されることを確認
         obj.base_callee_called = False

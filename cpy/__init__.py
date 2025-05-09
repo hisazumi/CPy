@@ -59,12 +59,12 @@ class CPySingle(object):
 class LayerMethodRegistrar:
     def __init__(self, func_to_decorate: Callable, layer: Enum, base_method_name: str) -> None:
         self.func_to_decorate: Callable = func_to_decorate
-        self.layer_name: str = layer.value if isinstance(layer, Enum) else layer
+        self.layer: Enum = layer
         self.base_method_name: str = base_method_name
 
     def __set_name__(self, owner_cls: Type, name_in_class: str) -> None:
         if hasattr(owner_cls, 'add_method') and callable(owner_cls.add_method):
-            owner_cls.add_method(self.layer_name, self.base_method_name, self.func_to_decorate)
+            owner_cls.add_method(self.layer, self.base_method_name, self.func_to_decorate)
         else:
             raise TypeError(
                 f"The class {owner_cls.__name__} where '{name_in_class}' is defined "
@@ -87,7 +87,7 @@ def cpybase(original_base_func: Callable) -> CPyBaseWithLayer:
             for layer_key_active in self_instance._layer:
                 if layer_key_active == CPySingle.Layer.BASE: continue # Base is already added
 
-                class_layers: Dict[str, Dict[str, Callable]] = self_instance.__class__.layers
+                class_layers: Dict[Enum, Dict[str, Callable]] = self_instance.__class__.layers
                 if layer_key_active in class_layers:
                     layer_specific_methods: Dict[str, Callable] = class_layers[layer_key_active]
                     if isinstance(layer_specific_methods, dict) and base_fname in layer_specific_methods:
