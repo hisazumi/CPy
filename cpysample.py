@@ -18,14 +18,14 @@ class CPy1(CPy):
     def skiptest(self):
         self.base_called = True
 
-@cpylayer(CPy1, 'l1', 'test') # @cpylayer(class name, layer name, method name)
-def test_l1(self):
-    self.l1_called = True
+    @cpylayer('l1', 'test') # @cpylayer(layer name, method name)
+    def test_l1(self):
+        self.l1_called = True
 
-@cpylayer(CPy1, 'l2', 'test')
-def test_l2(self):
-    self.l2_called = True
-    self.proceed()
+    @cpylayer('l2', 'test')
+    def test_l2(self):
+        self.l2_called = True
+        self.proceed()
 
 obj = CPy1()
 obj.activate('l1')

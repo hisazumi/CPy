@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 # CPySingle: extends a single class with Context-Oriented Programming (COP)
 # The scope of layer activation and deactivation is limited to a single class
 class CPySingle(object):
@@ -45,17 +45,40 @@ class CPySingle(object):
         self._proceed_funcs.append(current)
         return retval
 
+# LayerMethodRegistrar: Helper class for accessing and registering class and method from the decorator
+class LayerMethodRegistrar:
+    def __init__(self, func_to_decorate, layer_name, base_method_name):
+        self.func_to_decorate = func_to_decorate
+        self.layer_name = layer_name
+        self.base_method_name = base_method_name
 
-def cpybase(func):
+    def __set_name__(self, owner_cls, name_in_class):
+        if hasattr(owner_cls, 'add_method') and callable(owner_cls.add_method):
+            owner_cls.add_method(self.layer_name, self.base_method_name, self.func_to_decorate)
+        else:
+            raise TypeError(
+                f"The class {owner_cls.__name__} where '{name_in_class}' is defined "
+                f"does not have an 'add_method'. Ensure it inherits from CPySingle or CPy."
+            )
+
+    def __get__(self, instance, owner_cls):
+        if instance is None:
+            return self.func_to_decorate
+        return self.func_to_decorate.__get__(instance, owner_cls)
+
+def cpybase(func):  # decorator for base method
     def activated_funcs(self, fname):
-        a = [func]  # for base
-        try:
-            a.extend([self.__class__.layers[l][fname]
-                      for l in self._layer
-                      if l in self.__class__.layers])
-        except:
-            pass
-        return a
+        active_methods = [func]
+        if hasattr(self.__class__, 'layers') and isinstance(self.__class__.layers, dict):
+            for layer_key_active in self._layer:
+                if layer_key_active == 'base':
+                    continue
+                class_layers = self.__class__.layers
+                if layer_key_active in class_layers:
+                    layer_specific_methods = class_layers[layer_key_active]
+                    if isinstance(layer_specific_methods, dict) and fname in layer_specific_methods:
+                        active_methods.append(layer_specific_methods[fname])
+        return active_methods
 
     def f(self, *args, **kwargs):
         fname = func.__name__
@@ -65,15 +88,13 @@ def cpybase(func):
             self._proceed_funcs = activated_funcs(self, fname)
             self.cache[fname] = self._proceed_funcs
         return self.proceed(*args, **kwargs)
-
     return f
 
-
-def cpylayer(cls, layer, name):
-    def f(func):
-        cls.add_method(layer, name, func)
-    return f
-
+# cpylayer: decorator for layer method
+def cpylayer(layer_name, base_method_name):
+    def decorator(func):
+        return LayerMethodRegistrar(func, layer_name, base_method_name)
+    return decorator
 
 # CPy: extends multiple classes with Context-Oriented Programming (COP)
 # The scope of layer activation and deactivation is not limited to a single class
