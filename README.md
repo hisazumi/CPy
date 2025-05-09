@@ -65,7 +65,7 @@ Use the `@base_method_name.layer` decorator to add layers to specific base metho
         return self.proceed(data)
 ```
 
-### Adding Layers using @base_method_name.layer Decorator
+### Adding Layers using @cpylayer Decorator
 
 You can also define layer methods outside the class definition using the `@cpylayer` decorator. This is useful for organizing layer definitions separately.
 
