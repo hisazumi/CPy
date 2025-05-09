@@ -12,7 +12,7 @@ class LayerEnumForTest(Enum):
     L1 = 'l1'
     L2 = 'l2'
 
-# テスト用のサブクラスを複数作成
+# Create multiple subclasses for testing
 class SubClassA(CPy):
     @cpybase
     def method_a(self):
@@ -51,35 +51,35 @@ class TestCPy(unittest.TestCase):
         self.instance_b = SubClassB()
 
     def test_individual_layer_activation_deactivation(self):
-        # レイヤーを活性化してメソッドを呼び出し、結果を確認
+        # Activate layer and call method, verify result
         self.instance_a.activate(LayerEnumForTest.LAYERA)
         self.assertEqual(self.instance_a.method_a(), "layerA method for SubClassA")
         self.instance_b.activate(LayerEnumForTest.LAYERB)
         self.assertEqual(self.instance_b.method_b(), "layerB method for SubClassB")
 
-        # レイヤーを非活性化してベースメソッドが呼ばれることを確認
+        # Deactivate layer and verify base method is called
         self.instance_a.deactivate(LayerEnumForTest.LAYERA)
         self.assertEqual(self.instance_a.method_a(), "SubClassA base method")
         self.instance_b.deactivate(LayerEnumForTest.LAYERB)
         self.assertEqual(self.instance_b.method_b(), "SubClassB base method")
 
     def test_global_layer_activation_deactivation(self):
-        # グローバルにレイヤーを活性化し、すべてのインスタンスに反映されることを確認
+        # Activate layer globally and verify it affects all instances
         CPy.activate(LayerEnumForTest.GLOBAL_LAYER)
         self.assertEqual(self.instance_a.method_a(), "global layer method for SubClassA")
         self.assertEqual(self.instance_b.method_b(), "global layer method for SubClassB")
 
-        # グローバルにレイヤーを非活性化し、元のメソッドに戻ることを確認
+        # Deactivate layer globally and verify it reverts to original method
         CPy.deactivate(LayerEnumForTest.GLOBAL_LAYER)
         self.assertEqual(self.instance_a.method_a(), "SubClassA base method")
         self.assertEqual(self.instance_b.method_b(), "SubClassB base method")
 
     def test_layer_context_manager(self):
-        # Layerコンテキストマネージャーでの一時的なレイヤー活性化
+        # Temporary layer activation using Layer context manager
         with Layer(LayerEnumForTest.TEMP_LAYERB):
             self.assertEqual(self.instance_b.method_b(), "temporary layerB method for SubClassB")
 
-        # コンテキストを抜けると元に戻る
+        # Reverts to original behavior upon exiting the context
         self.assertEqual(self.instance_b.method_b(), "SubClassB base method")
 
 
@@ -130,10 +130,10 @@ class CPyQTest(unittest.TestCase):
                               (CPyRequestType.ACTIVATE, LayerEnumForTest.L2),
                               (CPyRequestType.DEACTIVATE, LayerEnumForTest.L2)], obj.queued_request)
 
-        # Criticalセクションを抜けた後、キューが処理される
+        # Queue is processed after exiting the Critical section
         self.assertEqual([CPy.Layer.BASE, LayerEnumForTest.L1], obj._layer)
         
-        # フラグをリセットしてからcalleeを呼び出し、レイヤーメソッドが実行されることを確認
+        # Reset flags and call callee, verify layer method execution
         obj.base_callee_called = False
         obj.l1_callee_called = False
         obj.l2_callee_called = False
