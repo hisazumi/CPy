@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import unittest
-from cpy import CPy, cpybase, Critical, Layer
+from cpy import CPy, cpybase, Critical, Layer, CPyRequestType
 from enum import Enum
 
 # Define Enum for test layers
@@ -126,8 +126,9 @@ class CPyQTest(unittest.TestCase):
             self.assertEqual(True, obj.base_callee_called)
 
             # check queue contents
-            self.assertEqual([('act', TestLayer.L1), ('act', TestLayer.L2),
-                              ('dea', TestLayer.L2)], obj.queued_request)
+            self.assertEqual([(CPyRequestType.ACTIVATE, TestLayer.L1),
+                              (CPyRequestType.ACTIVATE, TestLayer.L2),
+                              (CPyRequestType.DEACTIVATE, TestLayer.L2)], obj.queued_request)
 
         # Criticalセクションを抜けた後、キューが処理される
         self.assertEqual([CPy.Layer.BASE, TestLayer.L1], obj._layer)

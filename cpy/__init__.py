@@ -5,6 +5,10 @@
 from enum import Enum
 from typing import Any, Dict, List, Callable, Type, Optional, Tuple, Union, Protocol
 
+class CPyRequestType(Enum):
+    ACTIVATE = 'act'
+    DEACTIVATE = 'dea'
+
 class CPySingle(object):
     class Layer(Enum):
         BASE = 'base'
@@ -129,7 +133,7 @@ class CPy(CPySingle):
 
     def __init__(self) -> None:
         super(CPy, self).__init__()
-        self.queued_request: List[Tuple[str, Enum]] = []
+        self.queued_request: List[Tuple[CPyRequestType, Enum]] = []
         self.in_critical: bool = False
         CPy.instances.append(self)
 
@@ -145,13 +149,13 @@ class CPy(CPySingle):
 
     def req_activate(self, layer: Enum) -> None:
         if self.in_critical:
-            self.queued_request.append(('act', layer))
+            self.queued_request.append((CPyRequestType.ACTIVATE, layer))
         else:
             super(CPy, self).activate(layer)
 
     def req_deactivate(self, layer: Enum) -> None:
         if self.in_critical:
-            self.queued_request.append(('dea', layer))
+            self.queued_request.append((CPyRequestType.DEACTIVATE, layer))
         else:
             super(CPy, self).deactivate(layer)
 
@@ -164,9 +168,9 @@ class CPy(CPySingle):
 
     def do(self) -> None:
         for r in self.queued_request:
-            if r[0] == 'act':
+            if r[0] == CPyRequestType.ACTIVATE:
                 super(CPy, self).activate(r[1])
-            elif r[0] == 'dea':
+            elif r[0] == CPyRequestType.DEACTIVATE:
                 super(CPy, self).deactivate(r[1])
         self.queued_request = []
 
