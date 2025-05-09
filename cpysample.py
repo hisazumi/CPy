@@ -1,42 +1,129 @@
-from cpy import CPy, cpylayer, cpybase
+import sys
+import os
+
+# Add the parent directory to sys.path to be able to import the 'cpy' package
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from cpy import CPy, cpybase
+from enum import Enum
+
+class Layer(Enum):
+    ENHANCE = 'enhance'
+    LOGGING = 'logging'
 
 class CPy1(CPy):
-    def __init__(self):
-        self.reset()
-        super(CPy1, self).__init__()
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+        self.enhanced = False
+        self.logged = False
 
-    def reset(self):
-        self.base_called = False
-        self.l1_called = False
-        self.l2_called = False
+    def reset_flags(self):
+        self.enhanced = False
+        self.logged = False
 
-    @cpybase # declare as a base method
-    def test(self):
-        self.base_called = True
+    @cpybase
+    def greet(self):
+        print(f"Hello from {self.name}")
 
-    @cpybase # declare as a base method
-    def skiptest(self):
-        self.base_called = True
+    @greet.layer(Layer.ENHANCE)
+    def greet_enhance(self):
+        print(f"Enhancing greet for {self.name}...")
+        self.enhanced = True
+        self.proceed()
 
-@cpylayer(CPy1, 'l1', 'test') # @cpylayer(class name, layer name, method name)
-def test_l1(self):
-    self.l1_called = True
+    @greet.layer(Layer.LOGGING)
+    def greet_logging(self):
+        print(f"Logging greet for {self.name}...")
+        self.logged = True
+        self.proceed()
 
-@cpylayer(CPy1, 'l2', 'test')
-def test_l2(self):
-    self.l2_called = True
-    self.proceed()
 
-obj = CPy1()
-obj.activate('l1')
-obj.test()
-print(obj.base_called)  # False
-print(obj.l1_called)    # True
+class CPy2(CPy):
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+        self.enhanced = False
+        self.logged = False
 
-obj = CPy1()
-obj.activate('l1')
-obj.activate('l2')
-obj.test()
-print(obj.base_called)  # False
-print(obj.l1_called)    # True
-print(obj.l2_called)    # True
+    def reset_flags(self):
+        self.enhanced = False
+        self.logged = False
+
+    @cpybase
+    def greet(self):
+        print(f"Hi from {self.name}")
+
+    @greet.layer(Layer.ENHANCE)
+    def greet_enhance(self):
+        print(f"Enhancing greet for {self.name} in CPy2...")
+        self.enhanced = True
+        self.proceed()
+
+    @greet.layer(Layer.LOGGING)
+    def greet_logging(self):
+        print(f"Logging greet for {self.name} in CPy2...")
+        self.logged = True
+        self.proceed()
+
+
+# Create instances of both classes
+obj1 = CPy1("Instance 1")
+obj2 = CPy2("Instance 2")
+
+print("--- Before activation ---")
+obj1.reset_flags()
+obj2.reset_flags()
+obj1.greet()
+obj2.greet()
+print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
+print(f"Obj2 enhanced: {obj2.enhanced}, logged: {obj2.logged}")
+print("-" * 25)
+
+# Activate the ENHANCE layer globally for all CPy instances
+CPy.activate(Layer.ENHANCE)
+
+print("--- After activating ENHANCE layer ---")
+obj1.reset_flags()
+obj2.reset_flags()
+obj1.greet()
+obj2.greet()
+print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
+print(f"Obj2 enhanced: {obj2.enhanced}, logged: {obj2.logged}")
+print("-" * 25)
+
+# Activate the LOGGING layer globally
+CPy.activate(Layer.LOGGING)
+
+print("--- After activating ENHANCE and LOGGING layers ---")
+obj1.reset_flags()
+obj2.reset_flags()
+obj1.greet()
+obj2.greet()
+print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
+print(f"Obj2 enhanced: {obj2.enhanced}, logged: {obj2.logged}")
+print("-" * 25)
+
+# Deactivate the ENHANCE layer globally
+CPy.deactivate(Layer.ENHANCE)
+
+print("--- After deactivating ENHANCE layer ---")
+obj1.reset_flags()
+obj2.reset_flags()
+obj1.greet()
+obj2.greet()
+print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
+print(f"Obj2 enhanced: {obj2.enhanced}, logged: {obj2.logged}")
+print("-" * 25)
+
+# Deactivate the LOGGING layer globally
+CPy.deactivate(Layer.LOGGING)
+
+print("--- After deactivating LOGGING layer ---")
+obj1.reset_flags()
+obj2.reset_flags()
+obj1.greet()
+obj2.greet()
+print(f"Obj1 enhanced: {obj1.enhanced}, logged: {obj1.logged}")
+print(f"Obj2 enhanced: {obj2.enhanced}, logged: {obj2.logged}")
+print("-" * 25)
