@@ -47,17 +47,17 @@ class CPy1(CPy):
 
 ### Adding Layers
 
-Next, use the @cpylayer decorator to add layers to specific methods.
+Next, use the @methodname.layer decorator to add layers to specific methods.
 
 ```python
-@cpylayer(CPy1, 'l1', 'test') # @cpylayer(class name, layer name, method name)
-def test_l1(self):
-    self.l1_called = True
+    @test.layer('l1') # @methodname.layer(layer name)
+    def test_l1(self):
+        self.l1_called = True
 
-@cpylayer(CPy1, 'l2', 'test')
-def test_l2(self):
-    self.l2_called = True
-    self.proceed()
+    @test.layer('l2')
+    def test_l2(self):
+        self.l2_called = True
+        self.proceed()
 ```
 
 ### Instantiating the Class and Calling Methods

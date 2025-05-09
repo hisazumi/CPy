@@ -66,29 +66,44 @@ class LayerMethodRegistrar:
             return self.func_to_decorate
         return self.func_to_decorate.__get__(instance, owner_cls)
 
-def cpybase(func):  # decorator for base method
-    def activated_funcs(self, fname):
-        active_methods = [func]
-        if hasattr(self.__class__, 'layers') and isinstance(self.__class__.layers, dict):
-            for layer_key_active in self._layer:
-                if layer_key_active == 'base':
-                    continue
-                class_layers = self.__class__.layers
+def cpybase(original_base_func):
+    # 1. 元の cpybase のコアロジックを定義 (メソッド呼び出しのインターセプトとproceed処理)
+    #    これは前回の回答で示した cpybase の実装です。
+    def activated_funcs_for_base(self_instance, base_fname):
+        active_methods = [original_base_func] # ベースメソッド自体がリストの最初
+        if hasattr(self_instance.__class__, 'layers') and isinstance(self_instance.__class__.layers, dict):
+            for layer_key_active in self_instance._layer:
+                if layer_key_active == 'base': continue # ベースは既に追加済み
+                
+                class_layers = self_instance.__class__.layers
                 if layer_key_active in class_layers:
                     layer_specific_methods = class_layers[layer_key_active]
-                    if isinstance(layer_specific_methods, dict) and fname in layer_specific_methods:
-                        active_methods.append(layer_specific_methods[fname])
+                    if isinstance(layer_specific_methods, dict) and base_fname in layer_specific_methods:
+                        active_methods.append(layer_specific_methods[base_fname])
         return active_methods
 
-    def f(self, *args, **kwargs):
-        fname = func.__name__
-        if fname in self.cache:
-            self._proceed_funcs = self.cache[fname]
+    # これが実際にクラスのメソッドとして登録され、実行時に呼ばれる関数
+    def runtime_behavior_of_base_method(self_instance, *args, **kwargs):
+        fname = original_base_func.__name__
+        if fname in self_instance.cache:
+            self_instance._proceed_funcs = self_instance.cache[fname]
         else:
-            self._proceed_funcs = activated_funcs(self, fname)
-            self.cache[fname] = self._proceed_funcs
-        return self.proceed(*args, **kwargs)
-    return f
+            self_instance._proceed_funcs = activated_funcs_for_base(self_instance, fname)
+            self_instance.cache[fname] = self_instance._proceed_funcs
+        return self_instance.proceed(*args, **kwargs)
+
+    # 2. runtime_behavior_of_base_method 関数オブジェクトに .layer() メソッドを追加
+    def layer_decorator_factory(layer_name_for_attr):
+        def decorator(layer_function_to_register):
+            # LayerMethodRegistrar を使用してレイヤーメソッドを登録
+            # ベースメソッド名は original_base_func.__name__ から取得
+            return LayerMethodRegistrar(layer_function_to_register, layer_name_for_attr, original_base_func.__name__)
+        return decorator
+
+    runtime_behavior_of_base_method.layer = layer_decorator_factory
+
+    # 3. デコレートされたベースメソッド（.layer 属性付き）を返す
+    return runtime_behavior_of_base_method
 
 # cpylayer: decorator for layer method
 def cpylayer(layer_name, base_method_name):
