@@ -97,6 +97,7 @@ class CPyQ1(CPy):
     @callee.layer(TestLayer.L1)
     def callee_l1(self):
         self.l1_callee_called = True
+        self.proceed()
 
     @callee.layer(TestLayer.L2)
     def callee_l2(self):
