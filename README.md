@@ -8,7 +8,14 @@ It enables you to dynamically add and activate layers of methods that override b
 
 ## Installation
 
-This library is provided as a Python package. Add the `cpy` directory to your project.
+This library is provided as a Python package. To use it locally, place the `cpy` directory in your project's root directory. 
+
+Example:
+
+```python
+from cpy import CPy, cpybase
+# ... rest of your code
+```
 
 ## Usage
 
@@ -170,10 +177,28 @@ print("-" * 25)
 
 ## Running Tests
 
-To run the unit tests, execute the following command in your terminal:
+To run the unit tests, execute the following command in your terminal from the project's root directory:
 
 ```bash
-python3 cpytest.py
+python -m unittest discover tests
 ```
 
-This will run the tests defined in `cpytest.py` to verify the library's functionality.
+This command will discover and run all tests located in the `tests` directory, including `test_cpy.py` and `test_cpysingle.py`, to verify the library's functionality.
+
+## Type Checking
+
+The CPy library includes type hints to support static type checking. You can use a tool like `mypy` to check for type errors in your code that uses CPy.
+
+1. Install mypy:
+
+```bash
+pip install mypy
+```
+
+2. Run mypy from the project's root directory:
+
+```bash
+python -m mypy .
+```
+
+This will analyze your code and report any type inconsistencies.

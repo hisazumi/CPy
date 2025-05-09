@@ -58,11 +58,11 @@ class CPy2(CPySingle):
 class CPyTest(unittest.TestCase):
 
     def test_check_layers(self):
-        self.assertEqual(set([LayerEnum.L1.value, LayerEnum.L2.value]), set(CPy1.layers.keys()))
+        self.assertEqual(set([LayerEnum.L1, LayerEnum.L2]), set(CPy1.layers.keys()))
 
     def test_check_layers2(self):
         # Confirm CPy1 and CPy2 are not contaminated by each other
-        self.assertEqual(set([LayerEnum.L1.value]), set(CPy2.layers.keys()))
+        self.assertEqual(set([LayerEnum.L1]), set(CPy2.layers.keys()))
 
     def test_base_called(self):
         obj = CPy1()
