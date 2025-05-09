@@ -136,16 +136,18 @@ class CPy(CPySingle):
             i.req_deactivate(layer)
 
     def req_activate(self, layer):
+        layer_name = layer.value if isinstance(layer, Enum) else layer
         if self.in_critical:
-            self.queued_request.append(('act', layer))
+            self.queued_request.append(('act', layer_name))
         else:
-            super(CPy, self).activate(layer)
+            super(CPy, self).activate(layer_name)
 
     def req_deactivate(self, layer):
+        layer_name = layer.value if isinstance(layer, Enum) else layer
         if self.in_critical:
-            self.queued_request.append(('dea', layer))
+            self.queued_request.append(('dea', layer_name))
         else:
-            super(CPy, self).deactivate(layer)
+            super(CPy, self).deactivate(layer_name)
 
     def begin(self):
         self.in_critical = True
