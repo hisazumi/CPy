@@ -8,9 +8,7 @@ It enables you to dynamically add and activate layers of methods that override b
 
 ## Installation
 
-This library is provided as Python scripts. Add the following files to your project:
-
-- `cpy.py`
+This library is provided as a Python package. Add the `cpy` directory to your project.
 
 ## Usage
 
