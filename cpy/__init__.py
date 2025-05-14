@@ -23,6 +23,8 @@ class CPySingle(object):
     @classmethod
     def add_layer(cls, layer: Enum) -> None:
         cls.init_layer()
+        if layer in cls.layers:
+            raise ValueError(f"Layer '{layer}' already exists. Cannot add duplicate layer.")
         cls.layers[layer] = {}
 
     @classmethod
