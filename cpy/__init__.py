@@ -38,9 +38,6 @@ class CPySingle(object):
         super(CPySingle, self).__init__()
         # array of activated layers
         self._layer: List[Enum] = [CPySingle.Layer.BASE]
-        # array of valid functions for proceeds, init at method call
-        # array of activated layers
-        self._layer: List[Enum] = [CPySingle.Layer.BASE]
         # Stores the execution state for each base method call:
         # { base_method_name: { 'chain': List[Callable], 'index': int } }
         self._execution_state: Dict[str, Dict[str, Union[List[Callable], int]]] = {}
@@ -50,7 +47,7 @@ class CPySingle(object):
 
     # def purge_cache(self) -> None:
     #     self.cache = {}
-    #     self._execution_state = {} # reset 時にもクリア
+    #     self._execution_state = {} # Clear on reset too
 
     def activate(self, layer: Enum) -> None:
         # self.purge_cache() # Activating/deactivating shouldn't purge execution state

@@ -9,7 +9,7 @@ PKG = 'testcpy'
 class LayerEnum(Enum):
     L1 = 'l1'
     L2 = 'l2'
-    L3 = 'l3' # 新しいレイヤーを追加して実行順序のテストに使う
+    L3 = 'l3' # Add a new layer for execution order tests
 
 class CPy1(CPySingle):
 
@@ -23,9 +23,9 @@ class CPy1(CPySingle):
         self.base_called = False
         self.l1_called = False
         self.l2_called = False
-        self.l3_called = False # L3 レイヤーの状態を追加
-        self.execution_order = [] # 実行順序を記録するためのリスト
-        self._l1_should_proceed = True # test_l1 で proceed() を呼ぶかどうかのフラグ
+        self.l3_called = False # Add state for L3 layer
+        self.execution_order = [] # List to record execution order
+        self._l1_should_proceed = True # Flag to control if test_l1 calls proceed()
 
     @cpybase
     def test(self):
@@ -48,7 +48,7 @@ class CPy1(CPySingle):
     def test_l2(self):
         self.l2_called = True
         self.execution_order.append('l2')
-        self.proceed() # このレイヤーでは常に proceed() を呼ぶ
+        self.proceed() # Always call proceed() in this layer
 
     @test.layer(LayerEnum.L3)
     def test_l3(self):
@@ -71,105 +71,105 @@ class CPy2(CPySingle):
         super(CPy2, self).__init__()
 
     def reset(self):
-        # CPy2 にも reset メソッドを追加
+        # Add reset method to CPy2
         self.l1_called = False
-        self.base_called = False # CPy2 の base も確認できるようにする
+        self.base_called = False # Also check if CPy2's base is called
 
     @cpybase
     def test(self):
-        self.base_called = True # CPy2 の base も呼ばれることを確認
+        self.base_called = True # Confirm that CPy2's base is also called
 
     @test.layer(LayerEnum.L1)
-    def test_c2l1(self): # メソッド名を修正
+    def test_c2l1(self): # Correct method name
         self.l1_called = True
 
 
 class CPyTest(unittest.TestCase):
 
     def test_cpy1_check_layers(self):
-        # L3 レイヤーも追加されたことを確認
+        # Confirm that L3 layer has also been added
         self.assertEqual(set([LayerEnum.L1, LayerEnum.L2, LayerEnum.L3]), set(CPy1.layers.keys()))
 
     def test_cpy2_check_layers(self):
-        # CPy1 と CPy2 が互いに汚染されていないことを確認
+        # Confirm that CPy1 and CPy2 are not polluting each other
         self.assertEqual(set([LayerEnum.L1]), set(CPy2.layers.keys()))
 
     def test_cpy1_test_base_called_without_layers(self):
         obj = CPy1()
         obj.test()
         self.assertEqual(True, obj.base_called)
-        self.assertEqual(['base'], obj.execution_order) # 実行順序を確認
+        self.assertEqual(['base'], obj.execution_order) # Check execution order
 
     def test_cpy1_test_activate_l1_without_proceed(self):
-        # L1 をアクティベートし、L1 メソッド内で proceed() を呼ばないケース
+        # Case where L1 is activated and proceed() is not called within the L1 method
         obj = CPy1()
         obj.activate(LayerEnum.L1)
         obj = CPy1()
         obj.activate(LayerEnum.L1)
-        obj._l1_should_proceed = False # proceed() を呼ばないように設定
+        obj._l1_should_proceed = False # Set to not call proceed()
         obj.test()
         self.assertEqual(False, obj.base_called)
         self.assertEqual(True, obj.l1_called)
-        self.assertEqual(False, obj.l2_called) # proceed() が呼ばれないので L2 は呼ばれない
-        self.assertEqual(['l1'], obj.execution_order) # 実行順序を確認
+        self.assertEqual(False, obj.l2_called) # L2 is not called because proceed() is not called
+        self.assertEqual(['l1'], obj.execution_order) # Check execution order
 
     def test_cpy1_test_activate_l1_with_proceed(self):
-        # L1 をアクティベートし、L1 メソッド内で proceed() を呼ぶケース (デフォルトの挙動)
+        # Case where L1 is activated and proceed() is called within the L1 method (default behavior)
         obj = CPy1()
         obj.activate(LayerEnum.L1)
-        obj._l1_should_proceed = True # proceed() を呼ぶように設定 (デフォルト)
+        obj._l1_should_proceed = True # Set to call proceed() (default)
         obj.test()
-        # L1 をアクティベートし proceed() を呼ぶが、L2 はアクティブではないため L1 -> base と実行されることを期待
+        # Expect execution to be L1 -> base because L1 is activated and calls proceed(), but L2 is not active
         self.assertEqual(True, obj.base_called)
         self.assertEqual(True, obj.l1_called)
-        self.assertEqual(False, obj.l2_called) # L2 はアクティブではないので呼ばれない
-        self.assertEqual(['l1', 'base'], obj.execution_order) # 実行順序を確認
+        self.assertEqual(False, obj.l2_called) # L2 is not called because it's not active
+        self.assertEqual(['l1', 'base'], obj.execution_order) # Check execution order
 
 
     def test_cpy1_test_actdeact_l1(self):
         obj = CPy1()
         obj.activate(LayerEnum.L1)
-        obj._l1_should_proceed = True # proceed() を呼ぶように設定 (デフォルト)
-        obj.test() # 最初の実行
-        # L1 をアクティベートし proceed() を呼ぶが、L2 はアクティブではないため L1 -> base と実行されることを期待
-        self.assertEqual(['l1', 'base'], obj.execution_order) # 実行順序を確認
+        obj._l1_should_proceed = True # Set to call proceed() (default)
+        obj.test() # First execution
+        # Expect execution to be L1 -> base because L1 is activated and calls proceed(), but L2 is not active
+        self.assertEqual(['l1', 'base'], obj.execution_order) # Check execution order
         obj.reset()
         obj.deactivate(LayerEnum.L1)
-        obj.test() # 2回目の実行
+        obj.test() # Second execution
         self.assertEqual(True, obj.base_called)
         self.assertEqual(False, obj.l1_called)
-        self.assertEqual(False, obj.l2_called) # L1 が無効なので L2 は呼ばれない
-        self.assertEqual(['base'], obj.execution_order) # 実行順序を確認
+        self.assertEqual(False, obj.l2_called) # L2 is not called because L1 is deactivated
+        self.assertEqual(['base'], obj.execution_order) # Check execution order
 
 
     def test_cpy1_test_activate_l1_l2_with_proceed(self):
-        # L1 と L2 をアクティベートし、L1 と L2 メソッド内で proceed() を呼ぶケース
+        # Case where L1 and L2 are activated and proceed() is called within L1 and L2 methods
         obj = CPy1()
         obj.activate(LayerEnum.L1)
         obj.activate(LayerEnum.L2)
-        obj._l1_should_proceed = True # proceed() を呼ぶように設定 (デフォルト)
+        obj._l1_should_proceed = True # Set to call proceed() (default)
         obj.test()
-        self.assertEqual(True, obj.base_called) # L1, L2 と proceed() が呼ばれるため base は L2 から呼ばれる
+        self.assertEqual(True, obj.base_called) # base is called because L1 and L2 call proceed()
         self.assertEqual(True, obj.l1_called)
         self.assertEqual(True, obj.l2_called)
-        self.assertEqual(['l1', 'l2', 'base'], obj.execution_order) # 実行順序を確認
+        self.assertEqual(['l1', 'l2', 'base'], obj.execution_order) # Check execution order
 
 
     def test_cpy1_test_actl1l2_deactl1_with_proceed(self):
-        # L1 と L2 をアクティベートし、L1 をディアクティベートするケース
+        # Case where L1 and L2 are activated, then L1 is deactivated
         obj = CPy1()
         obj.activate(LayerEnum.L1)
         obj.activate(LayerEnum.L2)
-        obj._l1_should_proceed = True # proceed() を呼ぶように設定 (デフォルト)
-        obj.test() # 最初の実行
-        self.assertEqual(['l1', 'l2', 'base'], obj.execution_order) # 実行順序を確認
+        obj._l1_should_proceed = True # Set to call proceed() (default)
+        obj.test() # First execution
+        self.assertEqual(['l1', 'l2', 'base'], obj.execution_order) # Check execution order
         obj.reset()
         obj.deactivate(LayerEnum.L1)
-        obj.test() # 2回目の実行
-        self.assertEqual(True, obj.base_called)  # L1 が無効なので L2 -> base と実行される
+        obj.test() # Second execution
+        self.assertEqual(True, obj.base_called)  # Since L1 is deactivated, execution goes L2 -> base
         self.assertEqual(False, obj.l1_called)
         self.assertEqual(True, obj.l2_called)
-        self.assertEqual(['l2', 'base'], obj.execution_order) # 実行順序を確認
+        self.assertEqual(['l2', 'base'], obj.execution_order) # Check execution order
 
 
     def test_cpy1_skiptest_base_called_without_layers(self):
@@ -178,57 +178,56 @@ class CPyTest(unittest.TestCase):
         self.assertEqual(True, obj.base_called)
         self.assertEqual(False, obj.l1_called)
         self.assertEqual(False, obj.l2_called)
-        self.assertEqual(['skiptest_base'], obj.execution_order) # 実行順序を確認
+        self.assertEqual(['skiptest_base'], obj.execution_order) # Check execution order
 
     def test_cpy1_skiptest_activate_l2_and_base_called(self):
         obj = CPy1()
-        obj.activate(LayerEnum.L2) # skiptest に L2 レイヤーはないので base が呼ばれる
+        obj.activate(LayerEnum.L2) # Since skiptest has no L2 layer, base is called
         obj.skiptest()
         self.assertEqual(True, obj.base_called)
         self.assertEqual(False, obj.l1_called)
         self.assertEqual(False, obj.l2_called)
-        self.assertEqual(['skiptest_base'], obj.execution_order) # 実行順序を確認
+        self.assertEqual(['skiptest_base'], obj.execution_order) # Check execution order
 
     def test_cpy2_test_activate_l1(self):
-        # CPy2 の test メソッドに L1 レイヤーをアクティベート
+        # Activate L1 layer for CPy2's test method
         obj = CPy2()
         obj.activate(LayerEnum.L1)
         obj.test()
-        self.assertEqual(False, obj.base_called) # CPy2 の L1 レイヤーは proceed() を呼ばないので base は呼ばれない
+        self.assertEqual(False, obj.base_called) # CPy2's L1 layer does not call proceed(), so base is not called
         self.assertEqual(True, obj.l1_called)
 
     def test_cpy1_test_execution_order_l1_l2_l3(self):
-        # L1, L2, L3 を順にアクティベートした場合の実行順序を確認
+        # Check execution order when L1, L2, L3 are activated in order
         obj = CPy1()
         obj.activate(LayerEnum.L1)
         obj.activate(LayerEnum.L2)
         obj.activate(LayerEnum.L3)
-        obj._l1_should_proceed = True # L1 で proceed() を呼ぶように設定
+        obj._l1_should_proceed = True # Set to call proceed() in L1
         obj.test()
-        # L1 (proceed) -> L2 (proceed) -> L3 の順で呼ばれ、L3 は proceed() を呼ばないので base は呼ばれないことを期待
+        # Expect execution in defined order (L1 -> L2 -> L3), and base is not called because L3 does not call proceed()
         self.assertEqual(['l1', 'l2', 'l3'], obj.execution_order)
 
     def test_cpy1_test_execution_order_l3_l2_l1(self):
-        # L3, L2, L1 を順にアクティベートした場合の実行順序を確認 (アクティベート順ではなく定義順に実行されることを確認)
+        # Check execution order when L3, L2, L1 are activated in order (confirming execution is by definition order, not activation order)
         obj = CPy1()
         obj.activate(LayerEnum.L3)
         obj.activate(LayerEnum.L2)
         obj.activate(LayerEnum.L1)
-        obj._l1_should_proceed = True # L1 で proceed() を呼ぶように設定
+        obj._l1_should_proceed = True # Set to call proceed() in L1
         obj.test()
-        # 定義順 (L1 -> L2 -> L3) で呼ばれることを期待
-        # L1 (proceed) -> L2 (proceed) -> L3 の順で呼ばれ、L3 は proceed() を呼ばないので base は呼ばれないことを期待
+        # Expect execution in defined order (L1 -> L2 -> L3), and base is not called because L3 does not call proceed()
         self.assertEqual(['l1', 'l2', 'l3'], obj.execution_order)
 
     def test_cpy1_method_with_exception_l1(self):
-        # L1 レイヤーで例外が発生する場合のテスト
+        # Test case for when an exception occurs in the L1 layer
         obj = CPy1()
         obj.activate(LayerEnum.L1)
         with self.assertRaises(ValueError) as cm:
             obj.method_with_exception()
         self.assertEqual("Test Exception", str(cm.exception))
-        # 例外が発生したため、base メソッドは呼ばれないことを確認
-        self.assertEqual([], obj.execution_order) # 実行順序リストが空であることを確認
+        # Confirm that the base method is not called because an exception occurred
+        self.assertEqual([], obj.execution_order) # Confirm execution order list is empty
 
 
 if __name__ == '__main__':
